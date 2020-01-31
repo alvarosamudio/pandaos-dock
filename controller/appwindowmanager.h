@@ -28,21 +28,25 @@ struct DockEntry
         return id == a.id;
     }
 
-    friend QDataStream &operator<<(QDataStream &argument, const DockEntry &entry) {
-        argument << entry.isActive << entry.isDocked << entry.desktopFile
-                 << entry.icon << entry.name << entry.id << entry.windowID
-                 << entry.currentWindow;
+    friend QDataStream &operator<<(QDataStream &argument, DockEntry *entry) {
+        if (entry->isDocked) {
+            argument << entry->isActive << entry->isDocked << entry->desktopFile
+                     << entry->icon << entry->name << entry->id << entry->windowID
+                     << entry->currentWindow;
+        }
 
         return argument;
     }
 
-    friend QDataStream &operator>>(QDataStream &argument, DockEntry &entry) {
-        argument >> entry.isActive >> entry.isDocked >> entry.desktopFile
-                 >> entry.icon >> entry.name >> entry.id >> entry.windowID
-                 >> entry.currentWindow;
+//    friend QDataStream &operator>>(QDataStream &argument, DockEntry & entry) {
+//        argument >> entry->isActive >> entry->isDocked >> entry->desktopFile
+//                 >> entry->icon >> entry->name >> entry->id >> entry->windowID
+//                 >> entry->currentWindow;
 
-        return argument;
-    }
+
+
+//        return argument;
+//    }
 };
 Q_DECLARE_METATYPE(DockEntry)
 
@@ -54,18 +58,19 @@ public:
     static AppWindowManager *instance();
     explicit AppWindowManager(QObject *parent = nullptr);
 
-    QList<DockEntry> dockList() const { return m_dockList; }
+    QList<DockEntry *> dockList() const { return m_dockList; }
     bool contains(quint64 id) const;
     bool isAcceptWindow(quint64 id) const;
 
     void triggerWindow(quint64 id);
     void minimizeWindow(quint64 id);
     void raiseWindow(quint64 id);
+    void closeWindow(quint64 id);
 
 signals:
-    void entryAdded(const DockEntry &entry);
-    void entryRemoved(const DockEntry &entry);
-    void activeChanged(const DockEntry &entry);
+    void entryAdded(DockEntry *entry);
+    void entryRemoved(DockEntry *entry);
+    void activeChanged(DockEntry *entry);
 
 private:
     void initDockList();
@@ -77,9 +82,8 @@ private:
     void saveDockList();
 
 private:
-    static AppWindowManager *INSTANCE;
     QSettings *m_settings;
-    QList<DockEntry> m_dockList;
+    QList<DockEntry *> m_dockList;
     QList<DockEntry> m_dockedList;
 };
 

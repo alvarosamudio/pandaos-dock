@@ -15,11 +15,12 @@ public:
     static DockItemManager *instance(QObject *parent = nullptr);
     explicit DockItemManager(QObject *parent = nullptr);
 
-    const QList<QPointer<DockItem> > itemList() const;
+    const QList<QPointer<DockItem>> itemList() const;
 
 private:
-    void appItemAdded(const DockEntry &entry);
-    void appItemRemoved(const DockEntry &entry);
+    void appItemAdded(DockEntry *entry);
+    void appItemRemoved(DockEntry *entry);
+    void appItemActiveChanged(DockEntry *entry);
 
 signals:
     void itemInserted(const int index, DockItem *item) const;

@@ -3,13 +3,21 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QTimer>
 
 DockItem::DockItem(QWidget *parent)
     : QWidget(parent),
-      m_hoverEffect(new HoverHighlightEffect(this))
+      m_hoverEffect(new HoverHighlightEffect(this)),
+      m_popupWindow(new DockPopupWindow(nullptr)),
+      m_popupTipsDelayTimer(new QTimer(this))
 {
+    m_popupTipsDelayTimer->setInterval(500);
+    m_popupTipsDelayTimer->setSingleShot(true);
+
     setGraphicsEffect(m_hoverEffect);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(m_popupTipsDelayTimer, &QTimer::timeout, this, &DockItem::showHoverTips);
 }
 
 QSize DockItem::sizeHint() const
@@ -42,6 +50,27 @@ const QRect DockItem::perfectIconRect() const
     return iconRect;
 }
 
+QWidget *DockItem::popupTips()
+{
+    return nullptr;
+}
+
+void DockItem::showHoverTips()
+{
+    // if not in geometry area
+    const QRect r(topleftPoint(), size());
+    if (!r.contains(QCursor::pos()))
+        return;
+
+    QWidget *const content = popupTips();
+    if (!content)
+        return;
+
+    const QPoint p = popupMarkPoint();
+    content->show();
+    content->move(p.x(), p.y());
+}
+
 void DockItem::showContextMenu()
 {
     const QString menuJson = contextMenu();
@@ -70,6 +99,28 @@ void DockItem::showContextMenu()
     m_contextMenu.popup(QCursor::pos());
 }
 
+const QPoint DockItem::popupMarkPoint() const
+{
+    QPoint p(topleftPoint());
+    const QRect r = rect();
+
+    p += QPoint(r.width() / 2, 0);
+
+    return p;
+}
+
+const QPoint DockItem::topleftPoint() const
+{
+    QPoint p;
+    const QWidget *w = this;
+    do {
+        p += w->pos();
+        w = qobject_cast<QWidget *>(w->parent());
+    } while (w);
+
+    return p;
+}
+
 void DockItem::enterEvent(QEvent *e)
 {
     // Remove the bottom area to prevent unintentional operation in auto-hide mode.
@@ -79,6 +130,7 @@ void DockItem::enterEvent(QEvent *e)
 
     m_hover = true;
     m_hoverEffect->setHighlighting(true);
+    m_popupTipsDelayTimer->start();
 
     QWidget::update();
     QWidget::enterEvent(e);

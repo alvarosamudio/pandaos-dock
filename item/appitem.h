@@ -10,13 +10,13 @@ class AppItem : public DockItem
     Q_OBJECT
 
 public:
-    explicit AppItem(const DockEntry &entry, QWidget *parent = nullptr);
+    explicit AppItem(DockEntry *entry, QWidget *parent = nullptr);
 
     quint64 windowId() const { return m_id; };
-    bool isActive() const { return m_isActive; };
-    void setActive(bool active);
 
     inline ItemType itemType() const override { return DockItem::App; }
+
+    void closeWindow();
 
 private:
     void refreshIcon();
@@ -29,9 +29,8 @@ protected:
 
 private:
     quint64 m_id;
-    bool m_isActive;
     QPixmap m_iconPixmap;
-    DockEntry m_entry;
+    DockEntry *m_entry;
     QMenu m_contextMenu;
 };
 

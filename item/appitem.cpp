@@ -5,12 +5,11 @@
 #include <QMouseEvent>
 #include <QDebug>
 
-AppItem::AppItem(const DockEntry &entry, QWidget *parent)
+AppItem::AppItem(DockEntry *entry, QWidget *parent)
     : DockItem(parent),
       m_entry(entry)
 {
-    m_id = m_entry.windowID;
-    m_isActive = m_entry.isActive;
+    m_id = m_entry->windowID;
 
     QAction *dockAction = new QAction("Dock");
     QAction *closeAction = new QAction("Close All");
@@ -18,21 +17,19 @@ AppItem::AppItem(const DockEntry &entry, QWidget *parent)
     m_contextMenu.addAction(closeAction);
 
     refreshIcon();
+
+    connect(closeAction, &QAction::triggered, this, &AppItem::closeWindow);
 }
 
-void AppItem::setActive(bool active)
+void AppItem::closeWindow()
 {
-    if (m_isActive == active)
-        return;
-
-    m_isActive = active;
-    QWidget::update();
+    AppWindowManager::instance()->closeWindow(m_id);
 }
 
 void AppItem::refreshIcon()
 {
     const int iconSize = qMin(width(), height());
-    const QString iconName = m_entry.icon;
+    const QString iconName = m_entry->icon;
 
     m_iconPixmap = ThemeAppIcon::getIcon(iconName, iconSize * 0.8, devicePixelRatioF());
 
@@ -55,7 +52,7 @@ void AppItem::paintEvent(QPaintEvent *e)
     backgroundRect.moveCenter(itemRect.center());
     QPainterPath path;
     path.addRoundedRect(backgroundRect, 8, 8);
-    if (m_isActive) {
+    if (m_entry->isActive) {
         painter.fillPath(path, QColor(0, 0, 0, 255 * 0.8));
     } else {
         painter.fillPath(path, QColor(0, 0, 0, 255 * 0.3));

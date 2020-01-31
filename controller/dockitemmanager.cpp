@@ -18,26 +18,13 @@ DockItemManager::DockItemManager(QObject *parent)
 {
     m_itemList.append(new LauncherItem);
 
-    for (const DockEntry &entry : m_windowManager->dockList()) {
+    for (DockEntry *entry : m_windowManager->dockList()) {
         m_itemList.append(new AppItem(entry));
     }
 
     connect(m_windowManager, &AppWindowManager::entryAdded, this, &DockItemManager::appItemAdded);
     connect(m_windowManager, &AppWindowManager::entryRemoved, this, &DockItemManager::appItemRemoved);
-    connect(m_windowManager, &AppWindowManager::activeChanged, this, [=] (const DockEntry &entry) {
-        for (int i = 0; i < m_itemList.size(); ++i) {
-            if (m_itemList.at(i)->itemType() != DockItem::App)
-                continue;
-
-            AppItem *app = static_cast<AppItem *>(m_itemList.at(i).data());
-            if (!app)
-                continue;
-
-            if (entry.windowID == app->windowId()) {
-                app->setActive(entry.isActive);
-            }
-        }
-    });
+    connect(m_windowManager, &AppWindowManager::activeChanged, this, &DockItemManager::appItemActiveChanged);
 }
 
 const QList<QPointer<DockItem> > DockItemManager::itemList() const
@@ -45,7 +32,7 @@ const QList<QPointer<DockItem> > DockItemManager::itemList() const
     return m_itemList;
 }
 
-void DockItemManager::appItemAdded(const DockEntry &entry)
+void DockItemManager::appItemAdded(DockEntry *entry)
 {
     // 第一个是启动器
     int insertIndex = 1;
@@ -72,7 +59,7 @@ void DockItemManager::appItemAdded(const DockEntry &entry)
     emit itemInserted(insertIndex, item);
 }
 
-void DockItemManager::appItemRemoved(const DockEntry &entry)
+void DockItemManager::appItemRemoved(DockEntry *entry)
 {
     for (int i = 0; i < m_itemList.size(); ++i) {
         if (m_itemList.at(i)->itemType() != DockItem::App)
@@ -82,10 +69,24 @@ void DockItemManager::appItemRemoved(const DockEntry &entry)
         if (!app)
             continue;
 
-        if (app->windowId() == entry.windowID) {
+        if (app->windowId() == entry->windowID) {
             emit itemRemoved(app);
             m_itemList.removeOne(app);
             app->deleteLater();
         }
+    }
+}
+
+void DockItemManager::appItemActiveChanged(DockEntry *entry)
+{
+    for (DockItem *item : m_itemList) {
+        if (item->itemType() != DockItem::App)
+            continue;
+
+        AppItem *app = static_cast<AppItem *>(item);
+        if (!app)
+            continue;
+
+        app->update();
     }
 }

@@ -5,6 +5,7 @@
 #include <QPointer>
 #include <QMenu>
 #include "components/hoverhighlighteffect.h"
+#include "utils/dockpopupwindow.h"
 
 class DockItem : public QWidget
 {
@@ -29,8 +30,14 @@ public:
     virtual const QString contextMenu() const;
     const QRect perfectIconRect() const;
 
+    virtual QWidget *popupTips();
+
+    virtual void showHoverTips();
+
 private:
     void showContextMenu();
+    const QPoint popupMarkPoint() const;
+    const QPoint topleftPoint() const;
 
 protected:
     void enterEvent(QEvent *e) override;
@@ -39,6 +46,8 @@ protected:
 
 private:
     QPointer<HoverHighlightEffect> m_hoverEffect;
+    QPointer<DockPopupWindow> m_popupWindow;
+    QTimer *m_popupTipsDelayTimer;
     QMenu m_contextMenu;
     bool m_hover;
 };

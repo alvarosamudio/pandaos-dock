@@ -4,8 +4,7 @@
 #include <QApplication>
 #include <QX11Info>
 #include <QDebug>
-
-AppWindowManager *AppWindowManager::INSTANCE = nullptr;
+#include <QTimer>
 
 static const NET::Properties windowInfoFlags = NET::WMState | NET::XAWMState | NET::WMDesktop |
              NET::WMVisibleName | NET::WMGeometry | NET::WMWindowType;
@@ -13,10 +12,9 @@ static const NET::Properties2 windowInfoFlags2 = NET::WM2WindowClass | NET::WM2A
 
 AppWindowManager *AppWindowManager::instance()
 {
-    if (INSTANCE == nullptr)
-        INSTANCE = new AppWindowManager;
+    static AppWindowManager INSTANCE;
 
-    return INSTANCE;
+    return &INSTANCE;
 }
 
 AppWindowManager::AppWindowManager(QObject *parent)
@@ -41,7 +39,7 @@ bool AppWindowManager::contains(quint64 id) const
     bool contains = false;
 
     for (auto entry : m_dockList) {
-        if (entry.windowID == id) {
+        if (entry->windowID == id) {
             contains = true;
             break;
         }
@@ -115,11 +113,18 @@ void AppWindowManager::raiseWindow(quint64 id)
     KWindowSystem::activateWindow(id);
 }
 
+void AppWindowManager::closeWindow(quint64 id)
+{
+    // FIXME: Why there is no such thing in KWindowSystem??
+    NETRootInfo(QX11Info::connection(), NET::CloseWindow).closeWindowRequest(id);
+}
+
 void AppWindowManager::initDockList()
 {
     QByteArray readBuffer = m_settings->value("list").toByteArray();
     QDataStream in(&readBuffer, QIODevice::ReadOnly);
-    in >> m_dockList;
+
+//    in >> m_dockList;
 }
 
 void AppWindowManager::refreshWindowList()
@@ -143,10 +148,9 @@ void AppWindowManager::refreshWindowList()
 //        }
 //    }
 
-    const QList<WId> wnds = KWindowSystem::stackingOrder();
-    for (const WId wnd : wnds) {
-        if (isAcceptWindow(wnd)) {
-            onWindowAdded(wnd);
+    for (auto wid : KWindowSystem::self()->windows()) {
+        if (isAcceptWindow(wid)) {
+            onWindowAdded(wid);
         }
     }
 }
@@ -154,20 +158,20 @@ void AppWindowManager::refreshWindowList()
 void AppWindowManager::onWindowAdded(quint64 id)
 {
     KWindowInfo info(id, windowInfoFlags, windowInfoFlags2);
-    DockEntry entry;
+    DockEntry *entry = new DockEntry;
 
-    entry.windowID = id;
-    entry.icon = QString::fromUtf8(info.windowClassClass().toLower());
-    entry.isActive = KWindowSystem::activeWindow() == id;
-    entry.id = QCryptographicHash::hash(entry.icon.toUtf8(), QCryptographicHash::Md5).toHex();
-    entry.name = info.visibleName();
+    entry->windowID = id;
+    entry->icon = QString::fromUtf8(info.windowClassClass().toLower());
+    entry->isActive = KWindowSystem::activeWindow() == id;
+    entry->id = QCryptographicHash::hash(entry->icon.toUtf8(), QCryptographicHash::Md5).toHex();
+    entry->name = info.visibleName();
 
     m_dockList.append(entry);
 
 //    entry.desktopFile = QString::fromUtf8(KWindowInfo{id, 0, NET::WM2DesktopFileName}.desktopFileName());
-    entry.desktopFile = KWindowInfo{id, 0, NET::WM2DesktopFileName}.desktopFileName();
+    entry->desktopFile = KWindowInfo{id, 0, NET::WM2WindowClass | NET::WM2DesktopFileName}.desktopFileName();
 
-    qDebug() << "added: " << entry.windowID << entry.icon << entry.isActive << entry.desktopFile;
+    qDebug() << "added: " << entry->windowID << entry->icon << entry->isActive << entry->desktopFile;
 
 //    KWindowInfo info(mWindow, NET::WMVisibleName | NET::WMName);
 //    QString title = info.visibleName().isEmpty() ? info.name() : info.visibleName();
@@ -180,8 +184,8 @@ void AppWindowManager::onWindowAdded(quint64 id)
 
 void AppWindowManager::onWindowRemoved(quint64 id)
 {
-    for (const DockEntry &entry : m_dockList) {
-        if (entry.windowID == id) {
+    for (DockEntry *entry : m_dockList) {
+        if (entry->windowID == id) {
             emit entryRemoved(entry);
 //            m_dockList.removeOne(entry);
             qDebug() << "removed " << id;
@@ -197,11 +201,11 @@ void AppWindowManager::onActiveWindowChanged(quint64 id)
     if (!info.valid(true))
         return;
 
-    for (auto &entry : m_dockList) {
-        if (entry.windowID == id) {
-            entry.isActive = true;
+    for (auto entry : m_dockList) {
+        if (entry->windowID == id) {
+            entry->isActive = true;
         } else {
-            entry.isActive = false;
+            entry->isActive = false;
         }
 
         emit activeChanged(entry);
@@ -218,11 +222,7 @@ void AppWindowManager::saveDockList()
     QByteArray writeBuf;
     QDataStream out(&writeBuf, QIODevice::WriteOnly);
 
-    for (const auto &entry : m_dockList) {
-        if (entry.isDocked) {
-            out << entry;
-        }
-    }
+    out << m_dockList;
 
     m_settings->setValue("list", writeBuf);
 }

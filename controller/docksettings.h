@@ -21,7 +21,6 @@ public:
     QSize windowSize() const;
 
 private:
-    static DockSettings *INSTANCE;
     QSettings *m_settings;
     QSize m_windowSize;
 };

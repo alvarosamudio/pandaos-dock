@@ -6,14 +6,11 @@
 #include <QDebug>
 #include <math.h>
 
-DockSettings *DockSettings::INSTANCE = nullptr;
-
 DockSettings *DockSettings::instance()
 {
-    if (INSTANCE == nullptr)
-        INSTANCE = new DockSettings;
+    static DockSettings instance;
 
-    return INSTANCE;
+    return &instance;
 }
 
 DockSettings::DockSettings(QObject *parent)
