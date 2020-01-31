@@ -1,0 +1,228 @@
+#include "appwindowmanager.h"
+#include <QCryptographicHash>
+#include <QStandardPaths>
+#include <QApplication>
+#include <QX11Info>
+#include <QDebug>
+
+AppWindowManager *AppWindowManager::INSTANCE = nullptr;
+
+static const NET::Properties windowInfoFlags = NET::WMState | NET::XAWMState | NET::WMDesktop |
+             NET::WMVisibleName | NET::WMGeometry | NET::WMWindowType;
+static const NET::Properties2 windowInfoFlags2 = NET::WM2WindowClass | NET::WM2AllowedActions | NET::WM2DesktopFileName;
+
+AppWindowManager *AppWindowManager::instance()
+{
+    if (INSTANCE == nullptr)
+        INSTANCE = new AppWindowManager;
+
+    return INSTANCE;
+}
+
+AppWindowManager::AppWindowManager(QObject *parent)
+    : QObject(parent)
+{
+    m_settings = new QSettings(QString("%1/%2/%3/dock_list.conf")
+                               .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
+                               .arg(qApp->organizationName())
+                               .arg(qApp->applicationName()), QSettings::IniFormat);
+
+    initDockList();
+    refreshWindowList();
+
+    connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &AppWindowManager::onWindowAdded);
+    connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &AppWindowManager::onWindowRemoved);
+    connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &AppWindowManager::onActiveWindowChanged);
+//    connect(KWindowSystem::self(), &KWindowSystem::windowChanged, this, &AppWindowManager::onWindowChanged);
+}
+
+bool AppWindowManager::contains(quint64 id) const
+{
+    bool contains = false;
+
+    for (auto entry : m_dockList) {
+        if (entry.windowID == id) {
+            contains = true;
+            break;
+        }
+    }
+
+    return contains;
+}
+
+bool AppWindowManager::isAcceptWindow(quint64 id) const
+{
+    QFlags<NET::WindowTypeMask> ignoreList;
+    ignoreList |= NET::DesktopMask;
+    ignoreList |= NET::DockMask;
+    ignoreList |= NET::SplashMask;
+    ignoreList |= NET::ToolbarMask;
+    ignoreList |= NET::MenuMask;
+    ignoreList |= NET::PopupMenuMask;
+    ignoreList |= NET::NotificationMask;
+
+    KWindowInfo info(id, NET::WMWindowType | NET::WMState, NET::WM2TransientFor);
+
+    if (!info.valid())
+        return false;
+
+    if (NET::typeMatchesMask(info.windowType(NET::AllTypesMask), ignoreList))
+        return false;
+
+    // ignore windows that want to be ignored by the taskbar
+    if (info.state() & NET::SkipTaskbar)
+        return false;
+
+    // WM_TRANSIENT_FOR hint not set - normal window
+    WId transFor = info.transientFor();
+    if (transFor == 0 || transFor == id || transFor == (WId) QX11Info::appRootWindow())
+        return true;
+
+    info = KWindowInfo(transFor, NET::WMWindowType);
+
+    QFlags<NET::WindowTypeMask> normalFlag;
+    normalFlag |= NET::NormalMask;
+    normalFlag |= NET::DialogMask;
+    normalFlag |= NET::UtilityMask;
+
+    return !NET::typeMatchesMask(info.windowType(NET::AllTypesMask), normalFlag);
+}
+
+void AppWindowManager::triggerWindow(quint64 id)
+{
+    KWindowInfo info(id, NET::WMDesktop | NET::WMState | NET::XAWMState);
+
+    if (info.isMinimized()) {
+        raiseWindow(id);
+    } else {
+        minimizeWindow(id);
+    }
+}
+
+void AppWindowManager::minimizeWindow(quint64 id)
+{
+    KWindowSystem::minimizeWindow(id);
+}
+
+void AppWindowManager::raiseWindow(quint64 id)
+{
+    KWindowInfo info(id, NET::WMDesktop | NET::WMState | NET::XAWMState);
+    int desktop = info.desktop();
+
+    if (KWindowSystem::currentDesktop() != desktop)
+        KWindowSystem::setCurrentDesktop(desktop);
+
+    KWindowSystem::activateWindow(id);
+}
+
+void AppWindowManager::initDockList()
+{
+    QByteArray readBuffer = m_settings->value("list").toByteArray();
+    QDataStream in(&readBuffer, QIODevice::ReadOnly);
+    in >> m_dockList;
+}
+
+void AppWindowManager::refreshWindowList()
+{
+//    QList<quint64> newList;
+//    // just add new windows to groups, deleting is up to the groups
+//    const QList<WId> wnds = KWindowSystem::stackingOrder();
+//    for (const WId wnd : wnds) {
+//        if (isAcceptWindow(wnd)) {
+//            newList << wnd;
+//            // add window();
+//        }
+//    }
+
+//    // emulate windowRemoved if known window not reported by KWindowSystem
+//    for (auto i = m_knownWindows.begin(); i != m_knownWindows.end(); ) {
+//        if (0 > newList.indexOf(*i)) {
+//            i = m_knownWindows.erase(i);
+//        } else {
+//            ++i;
+//        }
+//    }
+
+    const QList<WId> wnds = KWindowSystem::stackingOrder();
+    for (const WId wnd : wnds) {
+        if (isAcceptWindow(wnd)) {
+            onWindowAdded(wnd);
+        }
+    }
+}
+
+void AppWindowManager::onWindowAdded(quint64 id)
+{
+    KWindowInfo info(id, windowInfoFlags, windowInfoFlags2);
+    DockEntry entry;
+
+    entry.windowID = id;
+    entry.icon = QString::fromUtf8(info.windowClassClass().toLower());
+    entry.isActive = KWindowSystem::activeWindow() == id;
+    entry.id = QCryptographicHash::hash(entry.icon.toUtf8(), QCryptographicHash::Md5).toHex();
+    entry.name = info.visibleName();
+
+    m_dockList.append(entry);
+
+//    entry.desktopFile = QString::fromUtf8(KWindowInfo{id, 0, NET::WM2DesktopFileName}.desktopFileName());
+    entry.desktopFile = KWindowInfo{id, 0, NET::WM2DesktopFileName}.desktopFileName();
+
+    qDebug() << "added: " << entry.windowID << entry.icon << entry.isActive << entry.desktopFile;
+
+//    KWindowInfo info(mWindow, NET::WMVisibleName | NET::WMName);
+//    QString title = info.visibleName().isEmpty() ? info.name() : info.visibleName();
+//    setText(title.replace(QStringLiteral("&"), QStringLiteral("&&")));
+
+    saveDockList();
+
+    emit entryAdded(entry);
+}
+
+void AppWindowManager::onWindowRemoved(quint64 id)
+{
+    for (const DockEntry &entry : m_dockList) {
+        if (entry.windowID == id) {
+            emit entryRemoved(entry);
+//            m_dockList.removeOne(entry);
+            qDebug() << "removed " << id;
+            break;
+        }
+    }
+}
+
+void AppWindowManager::onActiveWindowChanged(quint64 id)
+{
+    KWindowInfo info(id, windowInfoFlags, windowInfoFlags2);
+
+    if (!info.valid(true))
+        return;
+
+    for (auto &entry : m_dockList) {
+        if (entry.windowID == id) {
+            entry.isActive = true;
+        } else {
+            entry.isActive = false;
+        }
+
+        emit activeChanged(entry);
+    }
+}
+
+void AppWindowManager::onWindowChanged(WId id, NET::Properties properties, NET::Properties2 properties2)
+{
+
+}
+
+void AppWindowManager::saveDockList()
+{
+    QByteArray writeBuf;
+    QDataStream out(&writeBuf, QIODevice::WriteOnly);
+
+    for (const auto &entry : m_dockList) {
+        if (entry.isDocked) {
+            out << entry;
+        }
+    }
+
+    m_settings->setValue("list", writeBuf);
+}
