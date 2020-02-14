@@ -20,6 +20,7 @@ public:
 
 private:
     void refreshIcon();
+    void updateWindowIconGeometries();
 
 protected:
     void paintEvent(QPaintEvent *) override;
@@ -32,6 +33,7 @@ private:
     QPixmap m_iconPixmap;
     DockEntry *m_entry;
     QMenu m_contextMenu;
+    QTimer *m_updateIconGeometryTimer;
 };
 
 #endif // APPITEM_H

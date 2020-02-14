@@ -1,14 +1,19 @@
 #include "appitem.h"
 #include "utils/utils.h"
 #include "utils/themeappicon.h"
+#include "xcb/xcbmisc.h"
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
 
 AppItem::AppItem(DockEntry *entry, QWidget *parent)
     : DockItem(parent),
-      m_entry(entry)
+      m_entry(entry),
+      m_updateIconGeometryTimer(new QTimer(this))
 {
+    m_updateIconGeometryTimer->setInterval(500);
+    m_updateIconGeometryTimer->setSingleShot(true);
+
     m_id = m_entry->windowID;
 
     QAction *dockAction = new QAction("Dock");
@@ -18,6 +23,7 @@ AppItem::AppItem(DockEntry *entry, QWidget *parent)
 
     refreshIcon();
 
+    connect(m_updateIconGeometryTimer, &QTimer::timeout, this, &AppItem::updateWindowIconGeometries, Qt::QueuedConnection);
     connect(closeAction, &QAction::triggered, this, &AppItem::closeWindow);
 }
 
@@ -34,6 +40,17 @@ void AppItem::refreshIcon()
     m_iconPixmap = ThemeAppIcon::getIcon(iconName, m_id, iconSize * 0.8, devicePixelRatioF());
 
     QWidget::update();
+}
+
+void AppItem::updateWindowIconGeometries()
+{
+    const QRect r(mapToGlobal(QPoint(0, 0)),
+                  mapToGlobal(QPoint(width(),height())));
+    auto *xcb_misc = XcbMisc::instance();
+
+//    for (auto it(m_windowInfos.cbegin()); it != m_windowInfos.cend(); ++it)
+//        xcb_misc->set_window_icon_geometry(it.key(), r);
+    xcb_misc->set_window_icon_geometry(m_id, r);
 }
 
 void AppItem::paintEvent(QPaintEvent *e)
@@ -67,6 +84,8 @@ void AppItem::paintEvent(QPaintEvent *e)
 
 void AppItem::mousePressEvent(QMouseEvent *e)
 {
+    m_updateIconGeometryTimer->stop();
+
     if (e->button() == Qt::RightButton) {
         m_contextMenu.popup(QCursor::pos());
     }

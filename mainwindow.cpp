@@ -37,10 +37,10 @@ MainWindow::MainWindow(QWidget *parent)
     for (auto item : m_itemManager->itemList())
         m_mainPanel->insertItem(-1, item);
 
-    QWidget::show();
-
     initSize();
     resizeMainPanelWindow();
+
+    KWindowSystem::setOnDesktop(effectiveWinId(), NET::OnAllDesktops);
 
     connect(m_dragWidget, &DragWidget::dragPointOffset, this, &MainWindow::onMainWindowSizeChanged);
     connect(m_dragWidget, &DragWidget::dragFinished, this, &MainWindow::onDragFinished);
