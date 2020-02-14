@@ -40,6 +40,8 @@ void AppItem::refreshIcon()
     m_iconPixmap = ThemeAppIcon::getIcon(iconName, m_id, iconSize * 0.8, devicePixelRatioF());
 
     QWidget::update();
+
+    m_updateIconGeometryTimer->start();
 }
 
 void AppItem::updateWindowIconGeometries()

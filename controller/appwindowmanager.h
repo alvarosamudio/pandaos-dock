@@ -83,6 +83,7 @@ private:
 
 private:
     QSettings *m_settings;
+    int m_currentDesktop;
     QList<DockEntry *> m_dockList;
     QList<DockEntry> m_dockedList;
 };

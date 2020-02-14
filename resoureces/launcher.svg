@@ -1,43 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <defs>
-    <filter id="deepin-launcher-64px-a" width="127.6%" height="127.6%" x="-13.8%" y="-13.8%" filterUnits="objectBoundingBox">
-      <feOffset dy="1" in="SourceAlpha" result="shadowOffsetOuter1"/>
-      <feGaussianBlur in="shadowOffsetOuter1" result="shadowBlurOuter1" stdDeviation="1.5"/>
-      <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"/>
-      <feColorMatrix in="shadowBlurOuter1" result="shadowMatrixOuter1" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.2 0"/>
-      <feMerge>
-        <feMergeNode in="shadowMatrixOuter1"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <linearGradient id="deepin-launcher-64px-b" x1="36.374%" x2="36.374%" y1="10.403%" y2="93.072%">
-      <stop offset="0%" stop-color="#FFF"/>
-      <stop offset="100%" stop-color="#C6D3D5"/>
-    </linearGradient>
-    <linearGradient id="deepin-launcher-64px-c" x1="100%" x2="0%" y1="0%" y2="100%">
-      <stop offset="0%" stop-color="#ECD935"/>
-      <stop offset="100%" stop-color="#3BCAB9"/>
-    </linearGradient>
-    <linearGradient id="deepin-launcher-64px-d" x1="0%" x2="100%" y1="0%" y2="100%">
-      <stop offset="0%" stop-color="#00B8E8"/>
-      <stop offset="100%" stop-color="#4B5EFF"/>
-    </linearGradient>
-    <linearGradient id="deepin-launcher-64px-e" x1="0%" x2="100%" y1="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFC823"/>
-      <stop offset="100%" stop-color="#FF2F78"/>
-    </linearGradient>
-    <linearGradient id="deepin-launcher-64px-f" x1="81.903%" x2="0%" y1="0%" y2="100%">
-      <stop offset="0%" stop-color="#DE00C0"/>
-      <stop offset="100%" stop-color="#8720FF"/>
-    </linearGradient>
-  </defs>
-  <g fill="none" fill-rule="evenodd" filter="url(#deepin-launcher-64px-a)" transform="translate(3 3)">
-    <path fill="url(#deepin-launcher-64px-b)" d="M0,29 C0,12.9837143 12.9837143,0 29,0 C45.0162857,0 58,12.9837143 58,29 C58,45.0162857 45.0162857,58 29,58 C12.9837143,58 0,45.0162857 0,29 Z"/>
-    <g transform="translate(10 10)">
-      <rect width="11" height="11" x="2.5" y="13.46" fill="url(#deepin-launcher-64px-c)" rx="2" transform="rotate(-45 8 18.96)"/>
-      <rect width="11" height="11" x="13.46" y="24.42" fill="url(#deepin-launcher-64px-d)" rx="2" transform="rotate(-45 18.96 29.92)"/>
-      <rect width="11" height="11" x="13.46" y="2.5" fill="url(#deepin-launcher-64px-e)" rx="2" transform="rotate(-45 18.96 8)"/>
-      <rect width="11" height="11" x="24.42" y="13.46" fill="url(#deepin-launcher-64px-f)" rx="2" transform="rotate(-45 29.92 18.96)"/>
-    </g>
-  </g>
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="a" x1="8.4665" x2="8.4665" y1="281.4" y2="295.68" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#008cf4" offset="0"/>
+   <stop stop-color="#006cd2" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="matrix(1.1111 0 0 1.1111 -.94074 -312.13)" stroke-width=".99995">
+  <circle cx="8.4665" cy="288.78" r="7.1436" opacity=".15" style="paint-order:stroke markers fill"/>
+  <circle cx="8.4665" cy="288.54" r="7.1436" fill="url(#a)" style="paint-order:stroke markers fill"/>
+  <circle cx="8.4665" cy="288.54" r="5.8207" fill="#fff" opacity=".25" style="paint-order:stroke markers fill"/>
+ </g>
+ <g transform="matrix(.10596 0 0 .10596 21.429 10.072)" opacity=".15">
+  <path d="m-122.34-40.699-34.197 57.259 29.917-16.821 4.2793-2.4039zm0 0 34.197 57.259-29.917-16.821-4.2793-2.4039z" opacity=".988" stroke-width=".73055" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;paint-order:stroke fill markers"/>
+ </g>
+ <g transform="matrix(.10596 0 0 .10596 21.429 9.7454)" fill="#fff">
+  <path d="m-122.34-40.699-34.197 57.259 29.917-16.821 4.2793-2.4039zm0 0 34.197 57.259-29.917-16.821-4.2793-2.4039z" opacity=".988" stroke-width=".73055" style="font-feature-settings:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;paint-order:stroke fill markers"/>
+ </g>
 </svg>

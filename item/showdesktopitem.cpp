@@ -1,25 +1,25 @@
-#include "launcheritem.h"
+#include "showdesktopitem.h"
 #include "utils/utils.h"
 #include <QPainter>
-#include <QProcess>
+#include <KF5/KWindowSystem/KWindowSystem>
 
-LauncherItem::LauncherItem(QWidget *parent)
+ShowDesktopItem::ShowDesktopItem(QWidget *parent)
     : DockItem(parent)
 {
-    setAccessibleName("Launcher");
+    setAccessibleName("ShowDesktop");
     refreshIcon();
 }
 
-void LauncherItem::refreshIcon()
+void ShowDesktopItem::refreshIcon()
 {
     const int iconSize = qMin(width(), height());
 
-    m_iconPixmap = Utils::renderSVG(":/resoureces/launcher.svg", QSize(iconSize * 0.8, iconSize * 0.8));
+    m_iconPixmap = Utils::renderSVG(":/resoureces/desktop.svg", QSize(iconSize * 0.8, iconSize * 0.8));
 
     QWidget::update();
 }
 
-void LauncherItem::paintEvent(QPaintEvent *e)
+void ShowDesktopItem::paintEvent(QPaintEvent *e)
 {
     QWidget::paintEvent(e);
     QPainter painter(this);
@@ -34,15 +34,16 @@ void LauncherItem::paintEvent(QPaintEvent *e)
     painter.drawPixmap(iconX, iconY, m_iconPixmap);
 }
 
-void LauncherItem::resizeEvent(QResizeEvent *e)
+void ShowDesktopItem::resizeEvent(QResizeEvent *e)
 {
     QWidget::resizeEvent(e);
 
     refreshIcon();
 }
 
-void LauncherItem::mouseReleaseEvent(QMouseEvent *e)
+void ShowDesktopItem::mouseReleaseEvent(QMouseEvent *e)
 {
-    QProcess::startDetached("pandaos-launcher");
+    KWindowSystem::setShowingDesktop(!KWindowSystem::showingDesktop());
+
     QWidget::mouseReleaseEvent(e);
 }

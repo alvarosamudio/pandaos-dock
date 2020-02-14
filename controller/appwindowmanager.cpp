@@ -20,6 +20,7 @@ AppWindowManager *AppWindowManager::instance()
 AppWindowManager::AppWindowManager(QObject *parent)
     : QObject(parent)
 {
+    m_currentDesktop = KWindowSystem::self()->currentDesktop();
     m_settings = new QSettings(QString("%1/%2/%3/dock_list.conf")
                                .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
                                .arg(qApp->organizationName())
@@ -31,6 +32,9 @@ AppWindowManager::AppWindowManager(QObject *parent)
     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this, &AppWindowManager::onWindowAdded);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this, &AppWindowManager::onWindowRemoved);
     connect(KWindowSystem::self(), &KWindowSystem::activeWindowChanged, this, &AppWindowManager::onActiveWindowChanged);
+    connect(KWindowSystem::self(), &KWindowSystem::currentDesktopChanged, this, [&](int desktop) {
+        m_currentDesktop = desktop;
+    });
 //    connect(KWindowSystem::self(), &KWindowSystem::windowChanged, this, &AppWindowManager::onWindowChanged);
 }
 
@@ -60,14 +64,12 @@ bool AppWindowManager::isAcceptWindow(quint64 id) const
     ignoreList |= NET::NotificationMask;
 
     KWindowInfo info(id, NET::WMWindowType | NET::WMState, NET::WM2TransientFor);
-
     if (!info.valid())
         return false;
 
     if (NET::typeMatchesMask(info.windowType(NET::AllTypesMask), ignoreList))
         return false;
 
-    // ignore windows that want to be ignored by the taskbar
     if (info.state() & NET::SkipTaskbar)
         return false;
 
@@ -91,9 +93,15 @@ void AppWindowManager::triggerWindow(quint64 id)
     KWindowInfo info(id, NET::WMDesktop | NET::WMState | NET::XAWMState);
 
     if (info.isMinimized()) {
-        raiseWindow(id);
+        bool onCurrent = info.isOnDesktop(m_currentDesktop);
+
+        KWindowSystem::unminimizeWindow(id);
+
+        if (onCurrent) {
+            KWindowSystem::forceActiveWindow(id);
+        }
     } else {
-        minimizeWindow(id);
+        KWindowSystem::minimizeWindow(id);
     }
 }
 
@@ -129,25 +137,6 @@ void AppWindowManager::initDockList()
 
 void AppWindowManager::refreshWindowList()
 {
-//    QList<quint64> newList;
-//    // just add new windows to groups, deleting is up to the groups
-//    const QList<WId> wnds = KWindowSystem::stackingOrder();
-//    for (const WId wnd : wnds) {
-//        if (isAcceptWindow(wnd)) {
-//            newList << wnd;
-//            // add window();
-//        }
-//    }
-
-//    // emulate windowRemoved if known window not reported by KWindowSystem
-//    for (auto i = m_knownWindows.begin(); i != m_knownWindows.end(); ) {
-//        if (0 > newList.indexOf(*i)) {
-//            i = m_knownWindows.erase(i);
-//        } else {
-//            ++i;
-//        }
-//    }
-
     for (auto wid : KWindowSystem::self()->windows()) {
         if (isAcceptWindow(wid)) {
             onWindowAdded(wid);
