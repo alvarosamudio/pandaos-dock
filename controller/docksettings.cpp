@@ -25,9 +25,10 @@ DockSettings::DockSettings(QObject *parent)
                 .arg(qApp->organizationName())
                 .arg(qApp->applicationName());
 
-    if (!m_settings->contains("window_size"))
+    if (!m_settings->contains("window_size")) {
         m_settings->setValue("window_size", QSize(50, 50));
-    else
+        m_windowSize = QSize(50, 50);
+    } else
         m_windowSize = m_settings->value("window_size").toSize();
 }
 
