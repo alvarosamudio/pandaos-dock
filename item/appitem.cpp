@@ -31,7 +31,7 @@ void AppItem::refreshIcon()
     const int iconSize = qMin(width(), height());
     const QString iconName = m_entry->icon;
 
-    m_iconPixmap = ThemeAppIcon::getIcon(iconName, iconSize * 0.8, devicePixelRatioF());
+    m_iconPixmap = ThemeAppIcon::getIcon(iconName, m_id, iconSize * 0.8, devicePixelRatioF());
 
     QWidget::update();
 }
