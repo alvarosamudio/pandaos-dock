@@ -27,9 +27,9 @@ DockSettings::DockSettings(QObject *parent)
 
     if (!m_settings->contains("window_size")) {
         m_settings->setValue("window_size", QSize(50, 50));
-        m_windowSize = QSize(50, 50);
-    } else
-        m_windowSize = m_settings->value("window_size").toSize();
+    }
+
+    m_windowSize = m_settings->value("window_size").toSize();
 }
 
 QRect DockSettings::primaryRawRect()
