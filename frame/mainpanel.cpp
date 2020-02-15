@@ -159,9 +159,6 @@ void MainPanel::init()
     m_pluginAreaLayout->setContentsMargins(0, 0, 0, 0);
     m_pluginAreaLayout->setSpacing(0);
 
-    m_trayAreaLayout->addWidget(new QLabel("tray"));
-    m_pluginAreaLayout->addWidget(new QLabel("plugin"));
-
     setLayout(m_mainLayout);
 }
 

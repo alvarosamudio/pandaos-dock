@@ -15,12 +15,10 @@ void PluginLoader::run()
     QDir pluginsDir(m_pluginDirPath);
     const QStringList plugins = pluginsDir.entryList(QDir::Files);
 
-    for (const QString file : plugins)
-    {
+    for (const QString file : plugins) {
         if (!QLibrary::isLibrary(file))
             continue;
 
-        // TODO: old dock plugins is uncompatible
         if (file.startsWith("libpandaos-dock-"))
             continue;
 
