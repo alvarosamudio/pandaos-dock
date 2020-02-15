@@ -4,7 +4,8 @@
 #include <QScreen>
 
 #define MAINWINDOW_MAX_SIZE       100
-#define MAINWINDOW_MIN_SIZE       (40)
+#define MAINWINDOW_MIN_SIZE       (45)
+#define MAINWINDOW_PADDING (2)
 #define DRAG_AREA_SIZE (5)
 
 const QPoint rawXPosition(const QPoint &scaledPos)
@@ -23,8 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_dragWidget(new DragWidget(this)),
       m_itemManager(DockItemManager::instance()),
       m_settings(DockSettings::instance()),
-      m_xcbMisc(XcbMisc::instance()),
-      m_desktopWidget(QApplication::desktop())
+      m_xcbMisc(XcbMisc::instance())
 {
     m_dragWidget->setMouseTracking(true);
     m_dragWidget->setFocusPolicy(Qt::NoFocus);
@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(m_dragWidget, &DragWidget::dragPointOffset, this, &MainWindow::onMainWindowSizeChanged);
     connect(m_dragWidget, &DragWidget::dragFinished, this, &MainWindow::onDragFinished);
+
+    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &MainWindow::initSize, Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
@@ -64,6 +66,8 @@ void MainWindow::initSize()
     m_mainPanel->move(0, 0);
     m_mainPanel->setFixedSize(QWidget::size());
 
+    resizeMainPanelWindow();
+
     setStrutPartial();
 }
 
@@ -72,7 +76,7 @@ void MainWindow::setStrutPartial()
     const auto ratio = devicePixelRatioF();
     const QRect windowRect = m_settings->windowRect();
     m_xcbMisc->clear_strut_partial(winId());
-    m_xcbMisc->set_strut_partial(winId(), XcbMisc::OrientationBottom, windowRect.height() * ratio, windowRect.top(), windowRect.bottom());
+    m_xcbMisc->set_strut_partial(winId(), XcbMisc::OrientationBottom, windowRect.height() * ratio + MAINWINDOW_PADDING, windowRect.top(), windowRect.bottom());
 }
 
 void MainWindow::resizeMainPanelWindow()

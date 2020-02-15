@@ -16,8 +16,6 @@ void DockPopupWindow::setContent(QWidget *content)
     m_content->setParent(this);
     m_content->show();
     m_content->move(0, 0);
-
-
 }
 
 void DockPopupWindow::show(const QPoint &pos)

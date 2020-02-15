@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QFrame>
-#include <QDesktopWidget>
 #include "dragwidget.h"
 #include "mainpanel.h"
 #include "controller/dockitemmanager.h"
@@ -31,7 +30,6 @@ private:
     DockItemManager *m_itemManager;
     DockSettings *m_settings;
     XcbMisc *m_xcbMisc;
-    QDesktopWidget *m_desktopWidget;
     QSize m_size;
 };
 

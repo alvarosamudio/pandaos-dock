@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSettings>
 #include <QDataStream>
+#include <QSet>
 #include <KF5/KWindowSystem/KWindowSystem>
 #include <KF5/KWindowSystem/KWindowInfo>
 #include <KF5/KWindowSystem/NETWM>

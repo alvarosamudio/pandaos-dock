@@ -64,6 +64,7 @@ bool AppWindowManager::isAcceptWindow(quint64 id) const
     ignoreList |= NET::NotificationMask;
 
     KWindowInfo info(id, NET::WMWindowType | NET::WMState, NET::WM2TransientFor);
+
     if (!info.valid())
         return false;
 
@@ -138,14 +139,15 @@ void AppWindowManager::initDockList()
 void AppWindowManager::refreshWindowList()
 {
     for (auto wid : KWindowSystem::self()->windows()) {
-        if (isAcceptWindow(wid)) {
-            onWindowAdded(wid);
-        }
+        onWindowAdded(wid);
     }
 }
 
 void AppWindowManager::onWindowAdded(quint64 id)
 {
+    if (!isAcceptWindow(id))
+        return;
+
     KWindowInfo info(id, windowInfoFlags, windowInfoFlags2);
     DockEntry *entry = new DockEntry;
 

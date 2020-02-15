@@ -2,6 +2,7 @@
 #define PLUGINITEM_H
 
 #include "dockitem.h"
+#include "Interfaces/pluginsiteminterface.h"
 
 class PluginItem : public DockItem
 {
@@ -10,7 +11,10 @@ class PluginItem : public DockItem
 public:
     explicit PluginItem(QWidget *parent = nullptr);
 
-    inline ItemType itemType() const override { return DockItem::Launcher; }
+    inline ItemType itemType() const override { return DockItem::Plugins; }
+
+private:
+    PluginsItemInterface *m_interface;
 };
 
 #endif // PLUGINITEM_H

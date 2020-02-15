@@ -43,7 +43,8 @@ SOURCES += \
     dragwidget.cpp \
     utils/dockpopupwindow.cpp \
     item/pluginitem.cpp \
-    item/showdesktopitem.cpp
+    item/showdesktopitem.cpp \
+    utils/pluginloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -63,7 +64,10 @@ HEADERS += \
     dragwidget.h \
     utils/dockpopupwindow.h \
     item/pluginitem.h \
-    item/showdesktopitem.h
+    item/showdesktopitem.h \
+    Interfaces/pluginsiteminterface.h \
+    Interfaces/pluginproxyinterface.h \
+    utils/pluginloader.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

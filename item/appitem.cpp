@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QToolTip>
 
 AppItem::AppItem(DockEntry *entry, QWidget *parent)
     : DockItem(parent),
@@ -47,7 +48,7 @@ void AppItem::refreshIcon()
 void AppItem::updateWindowIconGeometries()
 {
     const QRect r(mapToGlobal(QPoint(0, 0)),
-                  mapToGlobal(QPoint(width(),height())));
+                  mapToGlobal(QPoint(width(), height())));
     auto *xcb_misc = XcbMisc::instance();
 
 //    for (auto it(m_windowInfos.cbegin()); it != m_windowInfos.cend(); ++it)
@@ -67,7 +68,7 @@ void AppItem::paintEvent(QPaintEvent *e)
     const QRectF itemRect = rect();
     qreal min = qMin(itemRect.width(), itemRect.height());
     QRectF backgroundRect = QRectF(itemRect.x(), itemRect.y(), min, min);
-    backgroundRect = backgroundRect.marginsRemoved(QMargins(2, 2, 2, 2));
+    backgroundRect = backgroundRect.marginsRemoved(QMargins(3, 3, 3, 3));
     backgroundRect.moveCenter(itemRect.center());
     QPainterPath path;
     path.addRoundedRect(backgroundRect, 8, 8);
