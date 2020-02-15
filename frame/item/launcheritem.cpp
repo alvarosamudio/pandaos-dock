@@ -14,7 +14,7 @@ void LauncherItem::refreshIcon()
 {
     const int iconSize = qMin(width(), height());
 
-    m_iconPixmap = Utils::renderSVG(":/resoureces/launcher.svg", QSize(iconSize * 0.8, iconSize * 0.8));
+    m_iconPixmap = Utils::renderSVG(":/resources/launcher.svg", QSize(iconSize * 0.8, iconSize * 0.8));
 
     QWidget::update();
 }

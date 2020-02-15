@@ -14,7 +14,7 @@ void ShowDesktopItem::refreshIcon()
 {
     const int iconSize = qMin(width(), height());
 
-    m_iconPixmap = Utils::renderSVG(":/resoureces/desktop.svg", QSize(iconSize * 0.8, iconSize * 0.8));
+    m_iconPixmap = Utils::renderSVG(":/resources/desktop.svg", QSize(iconSize * 0.8, iconSize * 0.8));
 
     QWidget::update();
 }

@@ -63,25 +63,36 @@ void AppItem::paintEvent(QPaintEvent *e)
 
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter.setPen(Qt::NoPen);
 
     // draw background
     const QRectF itemRect = rect();
-    qreal min = qMin(itemRect.width(), itemRect.height());
-    QRectF backgroundRect = QRectF(itemRect.x(), itemRect.y(), min, min);
-    backgroundRect = backgroundRect.marginsRemoved(QMargins(3, 3, 3, 3));
-    backgroundRect.moveCenter(itemRect.center());
-    QPainterPath path;
-    path.addRoundedRect(backgroundRect, 8, 8);
+//    qreal min = qMin(itemRect.width(), itemRect.height());
+//    QRectF backgroundRect = QRectF(itemRect.x(), itemRect.y(), min, min);
+//    backgroundRect = backgroundRect.marginsRemoved(QMargins(3, 3, 3, 3));
+//    backgroundRect.moveCenter(itemRect.center());
+//    QPainterPath path;
+//    path.addRoundedRect(backgroundRect, 8, 8);
+//    if (m_entry->isActive) {
+//        painter.fillPath(path, QColor(0, 0, 0, 255 * 0.8));
+//    } else {
+//        painter.fillPath(path, QColor(0, 0, 0, 255 * 0.3));
+//    }
+
+    const int lineWidth = itemRect.width() / 2;
+    const int lineHeight = 2;
+
     if (m_entry->isActive) {
-        painter.fillPath(path, QColor(0, 0, 0, 255 * 0.8));
+        painter.setBrush(QColor("#2CA7F8"));
+        painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
     } else {
-        painter.fillPath(path, QColor(0, 0, 0, 255 * 0.3));
+        painter.setBrush(QColor("#0F0F0F"));
+        painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
     }
 
     const auto ratio = devicePixelRatioF();
     const int iconX = rect().center().x() - m_iconPixmap.rect().center().x() / ratio;
     const int iconY = rect().center().y() - m_iconPixmap.rect().center().y() / ratio;
-
     painter.drawPixmap(iconX, iconY, m_iconPixmap);
 }
 
