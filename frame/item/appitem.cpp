@@ -83,7 +83,7 @@ void AppItem::paintEvent(QPaintEvent *e)
     const int lineHeight = 2;
 
     if (m_entry->isActive) {
-        painter.setBrush(QColor("#2CA7F8"));
+        painter.setBrush(QColor("#1974FF"));
         painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
     } else {
         painter.setBrush(QColor("#0F0F0F"));

@@ -6,7 +6,6 @@
 #include <QTimer>
 
 #include "pluginsiteminterface.h"
-#include "datetimewidget.h"
 
 class DatetimePlugin : public QObject, PluginsItemInterface
 {

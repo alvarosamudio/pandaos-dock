@@ -9,12 +9,10 @@ TARGET          = $$qtLibraryTarget(datetime)
 DISTFILES       += datetime.json
 
 HEADERS += \
-    datetimeplugin.h \
-    datetimewidget.h
+    datetimeplugin.h
 
 SOURCES += \
-    datetimeplugin.cpp \
-    datetimewidget.cpp
+    datetimeplugin.cpp
 
 target.path = $${PREFIX}/lib/pandaos-dock/plugins/
 INSTALLS += target
