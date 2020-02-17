@@ -47,7 +47,8 @@ SOURCES += \
     item/pluginitem.cpp \
     item/showdesktopitem.cpp \
     utils/pluginloader.cpp \
-    controller/pluginsmanager.cpp
+    controller/pluginsmanager.cpp \
+    blurhelper.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -69,7 +70,8 @@ HEADERS += \
     item/pluginitem.h \
     item/showdesktopitem.h \
     utils/pluginloader.h \
-    controller/pluginsmanager.h
+    controller/pluginsmanager.h \
+    blurhelper.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

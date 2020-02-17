@@ -22,9 +22,11 @@
 #include <QDebug>
 #include <QX11Info>
 #include <QApplication>
+#include <QRegion>
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_ewmh.h>
+#include <xcb/xproto.h>
 
 #include "xcbmisc.h"
 
@@ -78,8 +80,7 @@ void XcbMisc::clear_strut_partial(xcb_window_t winId)
 
 void XcbMisc::set_strut_partial(xcb_window_t winId, Orientation orientation, uint strut, uint start, uint end)
 {
-    xcb_ewmh_wm_strut_partial_t strut_partial;
-    memset(&strut_partial, 0, sizeof(xcb_ewmh_wm_strut_partial_t));
+    xcb_ewmh_wm_strut_partial_t strut_partial {};
 
     switch (orientation) {
     case OrientationLeft:
@@ -122,4 +123,30 @@ void XcbMisc::set_window_icon_geometry(xcb_window_t winId, QRect geo)
     const auto ratio = qApp->devicePixelRatio();
 
     xcb_ewmh_set_wm_icon_geometry(&m_ewmh_connection, winId, geo.x() * ratio, geo.y() * ratio, geo.width() * ratio, geo.height() * ratio);
+}
+
+void XcbMisc::enableBlurBehind(xcb_window_t winId, bool enable, const QRegion &region)
+{
+    xcb_connection_t *c = QX11Info::connection();
+    if (!c) {
+        return;
+    }
+
+    const QByteArray effectName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEHIND_REGION");
+    xcb_intern_atom_cookie_t atomCookie = xcb_intern_atom_unchecked(c, false, effectName.length(), effectName.constData());
+    QScopedPointer<xcb_intern_atom_reply_t, QScopedPointerPodDeleter> atom(xcb_intern_atom_reply(c, atomCookie, nullptr));
+    if (!atom) {
+        return;
+    }
+
+    QVector<uint32_t> data;
+    data.reserve(region.rectCount() * 4);
+    for (const QRect& r : region) {
+        // kwin on X uses device pixels, convert from logical
+        auto dpr = qApp->devicePixelRatio();
+        data << r.x() * dpr << r.y() * dpr << r.width() * dpr << r.height() * dpr;
+    }
+
+    xcb_change_property(c, XCB_PROP_MODE_REPLACE, winId, atom->atom, XCB_ATOM_CARDINAL,
+                        32, data.size(), data.constData());
 }

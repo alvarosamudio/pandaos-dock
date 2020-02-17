@@ -221,16 +221,6 @@ void MainPanel::calcuDockIconSize(int w, int h)
     }
 }
 
-void MainPanel::paintEvent(QPaintEvent *e)
-{
-    Q_UNUSED(e)
-
-    QPainter painter(this);
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor("#EEEEEE"));
-    painter.drawRect(rect());
-}
-
 void MainPanel::resizeEvent(QResizeEvent *event)
 {
     resizeDockIcon();

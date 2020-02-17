@@ -34,7 +34,6 @@ private:
     void calcuDockIconSize(int w, int h);
 
 protected:
-    void paintEvent(QPaintEvent *e) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:

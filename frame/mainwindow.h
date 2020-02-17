@@ -1,14 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QFrame>
+#include <QWidget>
 #include "dragwidget.h"
 #include "mainpanel.h"
 #include "controller/dockitemmanager.h"
 #include "controller/docksettings.h"
 #include "xcb/xcbmisc.h"
 
-class MainWindow : public QFrame
+class MainWindow : public QWidget
 {
     Q_OBJECT
 
@@ -23,6 +23,9 @@ private:
     void resizeMainPanelWindow();
     void onMainWindowSizeChanged(QPoint offset);
     void onDragFinished();
+
+    void resizeEvent(QResizeEvent *e);
+    void showEvent(QShowEvent *e);
 
 private:
     MainPanel *m_mainPanel;

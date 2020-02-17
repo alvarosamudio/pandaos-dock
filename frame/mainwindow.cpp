@@ -2,6 +2,7 @@
 #include "utils/utils.h"
 #include <QApplication>
 #include <QScreen>
+#include <KF5/KWindowSystem/KWindowEffects>
 
 #define MAINWINDOW_MAX_SIZE       100
 #define MAINWINDOW_MIN_SIZE       (45)
@@ -19,7 +20,7 @@ const QPoint rawXPosition(const QPoint &scaledPos)
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QFrame(parent),
+    : QWidget(parent),
       m_mainPanel(new MainPanel(this)),
       m_dragWidget(new DragWidget(this)),
       m_itemManager(DockItemManager::instance()),
@@ -32,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_dragWidget->setCursor(Qt::SizeVerCursor);
     // m_dragWidget->setCursor(Qt::SizeHorCursor);
 
-    m_xcbMisc->set_window_type(winId(), XcbMisc::Dock);
+
+//    m_xcbMisc->set_window_type(winId(), XcbMisc::Dock);
 
     for (auto item : m_itemManager->itemList())
         m_mainPanel->insertItem(-1, item);
@@ -40,7 +42,19 @@ MainWindow::MainWindow(QWidget *parent)
     initSize();
     resizeMainPanelWindow();
 
+    // blur
+    setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_NoSystemBackground, false);
+
+    QPalette pal = this->palette();
+    QColor windowColor("#EEEEEE");
+    windowColor.setAlpha(140);
+    pal.setColor(QPalette::Window, windowColor);
+    setPalette(pal);
+
     KWindowSystem::setOnDesktop(effectiveWinId(), NET::OnAllDesktops);
+    KWindowSystem::setType(winId(), NET::Dock);
+    //KWindowEffects::slideWindow(winId(), KWindowEffects::BottomEdge);
 
     connect(m_dragWidget, &DragWidget::dragPointOffset, this, &MainWindow::onMainWindowSizeChanged);
     connect(m_dragWidget, &DragWidget::dragFinished, this, &MainWindow::onDragFinished);
@@ -73,6 +87,23 @@ void MainWindow::initSize()
 
 void MainWindow::setStrutPartial()
 {
+//    NETExtendedStrut strut;
+//    strut.bottom_width = height();
+//    strut.bottom_start = x();
+//    strut.bottom_end = x() + width() - 1;
+
+//    KWindowSystem::setExtendedStrut(winId(), strut.left_width,
+//                                             strut.left_start,
+//                                             strut.left_end,
+//                                             strut.right_width,
+//                                             strut.right_start,
+//                                             strut.right_end,
+//                                             strut.top_width,
+//                                             strut.top_start,
+//                                             strut.top_end,
+//                                             strut.bottom_width,
+//                                             strut.bottom_start,
+//                                             strut.bottom_end);
     const auto ratio = devicePixelRatioF();
     const QRect windowRect = m_settings->windowRect();
     m_xcbMisc->clear_strut_partial(winId());
@@ -106,4 +137,16 @@ void MainWindow::onDragFinished()
     m_size = m_settings->windowSize();
 
     setStrutPartial();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *e)
+{
+    QWidget::resizeEvent(e);
+}
+
+void MainWindow::showEvent(QShowEvent *e)
+{
+    QWidget::showEvent(e);
+
+    XcbMisc::instance()->enableBlurBehind(winId(), true);
 }

@@ -51,6 +51,8 @@ public:
     void set_strut_partial(xcb_window_t winId, Orientation orientation, uint strut, uint start, uint end);
     void set_window_icon_geometry(xcb_window_t winId, QRect geo);
 
+    void enableBlurBehind(xcb_window_t winId, bool enable = true, const QRegion &region = QRegion());
+
 private:
     XcbMisc();
 
