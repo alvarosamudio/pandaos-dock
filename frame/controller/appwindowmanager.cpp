@@ -179,7 +179,7 @@ void AppWindowManager::refreshWindowList()
         qDebug() << var << " init";
         DockEntry *entry = new DockEntry;
         entry->icon = var;
-        entry->isActive = false;
+        entry->isDocked = true;
         m_dockList.append(entry);
 
         emit entryAdded(entry);
@@ -214,7 +214,6 @@ void AppWindowManager::onWindowAdded(quint64 id)
         DockEntry *entry = new DockEntry;
         entry->WIdList.append(id);
         entry->icon = QString::fromUtf8(info.windowClassClass().toLower());
-        entry->isActive = KWindowSystem::activeWindow() == id;
         entry->id = QCryptographicHash::hash(entry->icon.toUtf8(), QCryptographicHash::Md5).toHex();
         entry->name = info.visibleName();
 
@@ -241,8 +240,11 @@ void AppWindowManager::onWindowRemoved(quint64 id)
         e->WIdList.removeOne(id);
         qDebug() << "removed: " << id;
         if (e->WIdList.isEmpty()) {
-            m_dockList.removeOne(e);
-            emit entryRemoved(e);
+
+            if (!e->isDocked) {
+                m_dockList.removeOne(e);
+                emit entryRemoved(e);
+            }
         }
     }
 
