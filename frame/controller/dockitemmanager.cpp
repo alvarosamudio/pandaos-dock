@@ -77,7 +77,7 @@ void DockItemManager::appItemRemoved(DockEntry *entry)
         if (!app)
             continue;
 
-        if (app->windowId() == entry->windowID) {
+        if (app->entry() == entry) {
             emit itemRemoved(app);
             m_itemList.removeOne(app);
             app->deleteLater();

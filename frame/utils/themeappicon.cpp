@@ -51,7 +51,7 @@ const QPixmap ThemeAppIcon::getIcon(const QString iconName, const quint64 winId,
     const int fakeSize = std::max(48, s); // cannot use 16x16, cause 16x16 is label icon
     pixmap = icon.pixmap(QSize(fakeSize, fakeSize));
 
-    if (pixmap.isNull()) {
+    if (pixmap.isNull() && winId != 0) {
         pixmap = KWindowSystem::icon(winId, size, size, true);
     }
 

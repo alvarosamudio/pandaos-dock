@@ -1,6 +1,7 @@
 #include "appitem.h"
 #include "utils/utils.h"
 #include "utils/themeappicon.h"
+#include "controller/appwindowmanager.h"
 #include "xcb/xcbmisc.h"
 #include <QPainter>
 #include <QMouseEvent>
@@ -15,8 +16,6 @@ AppItem::AppItem(DockEntry *entry, QWidget *parent)
     m_updateIconGeometryTimer->setInterval(500);
     m_updateIconGeometryTimer->setSingleShot(true);
 
-    m_id = m_entry->windowID;
-
     QAction *dockAction = new QAction("Dock");
     QAction *closeAction = new QAction("Close All");
     m_contextMenu.addAction(dockAction);
@@ -26,11 +25,15 @@ AppItem::AppItem(DockEntry *entry, QWidget *parent)
 
     connect(m_updateIconGeometryTimer, &QTimer::timeout, this, &AppItem::updateWindowIconGeometries, Qt::QueuedConnection);
     connect(closeAction, &QAction::triggered, this, &AppItem::closeWindow);
+    connect(dockAction, &QAction::triggered, this, [=] {
+        m_entry->isDocked = true;
+        AppWindowManager::instance()->save();
+    });
 }
 
 void AppItem::closeWindow()
 {
-    AppWindowManager::instance()->closeWindow(m_id);
+//    AppWindowManager::instance()->closeWindow(m_id);
 }
 
 void AppItem::refreshIcon()
@@ -38,7 +41,11 @@ void AppItem::refreshIcon()
     const int iconSize = qMin(width(), height());
     const QString iconName = m_entry->icon;
 
-    m_iconPixmap = ThemeAppIcon::getIcon(iconName, m_id, iconSize * 0.8, devicePixelRatioF());
+    if (m_entry->WIdList.isEmpty()) {
+        m_iconPixmap = ThemeAppIcon::getIcon(iconName, 0, iconSize * 0.8, devicePixelRatioF());
+    } else {
+        m_iconPixmap = ThemeAppIcon::getIcon(iconName, m_entry->WIdList.at(m_entry->current), iconSize * 0.8, devicePixelRatioF());
+    }
 
     QWidget::update();
 
@@ -51,9 +58,9 @@ void AppItem::updateWindowIconGeometries()
                   mapToGlobal(QPoint(width(), height())));
     auto *xcb_misc = XcbMisc::instance();
 
-//    for (auto it(m_windowInfos.cbegin()); it != m_windowInfos.cend(); ++it)
-//        xcb_misc->set_window_icon_geometry(it.key(), r);
-    xcb_misc->set_window_icon_geometry(m_id, r);
+    for (quint64 id : m_entry->WIdList) {
+        xcb_misc->set_window_icon_geometry(id, r);
+    }
 }
 
 void AppItem::paintEvent(QPaintEvent *e)
@@ -81,13 +88,23 @@ void AppItem::paintEvent(QPaintEvent *e)
 
     const int lineWidth = itemRect.width() / 2;
     const int lineHeight = 2;
+    bool isActive = false;
 
-    if (m_entry->isActive) {
-        painter.setBrush(QColor("#1974FF"));
-        painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
-    } else {
-        painter.setBrush(QColor("#0F0F0F"));
-        painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
+    if (!m_entry->WIdList.isEmpty()) {
+        for (quint64 id : m_entry->WIdList) {
+            if (KWindowSystem::activeWindow() == id) {
+                isActive = true;
+                break;
+            }
+        }
+
+        if (isActive) {
+            painter.setBrush(QColor("#1974FF"));
+            painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
+        } else {
+            painter.setBrush(QColor("#0F0F0F"));
+            painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
+        }
     }
 
     const auto ratio = devicePixelRatioF();
@@ -110,7 +127,7 @@ void AppItem::mousePressEvent(QMouseEvent *e)
 void AppItem::mouseReleaseEvent(QMouseEvent *e)
 {
     if (e->button() == Qt::LeftButton) {
-        AppWindowManager::instance()->triggerWindow(m_id);
+        AppWindowManager::instance()->clicked(m_entry);
     }
 }
 

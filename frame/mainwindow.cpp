@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QPalette pal = this->palette();
     QColor windowColor("#EEEEEE");
-    windowColor.setAlpha(140);
+//    windowColor.setAlpha(140);
     pal.setColor(QPalette::Window, windowColor);
     setPalette(pal);
 

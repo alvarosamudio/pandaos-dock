@@ -12,9 +12,8 @@ class AppItem : public DockItem
 public:
     explicit AppItem(DockEntry *entry, QWidget *parent = nullptr);
 
-    quint64 windowId() const { return m_id; };
-
     inline ItemType itemType() const override { return DockItem::App; }
+    DockEntry *entry() { return m_entry; };
 
     void closeWindow();
 
@@ -29,7 +28,6 @@ protected:
     void resizeEvent(QResizeEvent *e) override;
 
 private:
-    quint64 m_id;
     QPixmap m_iconPixmap;
     DockEntry *m_entry;
     QMenu m_contextMenu;
