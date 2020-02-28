@@ -161,6 +161,7 @@ void AppWindowManager::clicked(DockEntry *entry)
 void AppWindowManager::undock(DockEntry *entry)
 {
     if (entry->WIdList.isEmpty()) {
+        m_dockList.removeOne(entry);
         emit entryRemoved(entry);
     }
 }
