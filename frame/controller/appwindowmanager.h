@@ -18,8 +18,6 @@ struct DockEntry
     QString name;
     QString id;
     int current = 0;
-    quint64 windowID = 0;
-    quint32 currentWindow = 0;
 
     QList<quint64> WIdList;
 };
@@ -43,7 +41,7 @@ public:
     void closeWindow(quint64 id);
 
     void clicked(DockEntry *entry);
-
+    void undock(DockEntry *entry);
     void save();
 
 signals:

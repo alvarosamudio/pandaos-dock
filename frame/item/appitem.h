@@ -17,7 +17,11 @@ public:
 
     void closeWindow();
 
+    void update();
+
 private:
+    void initDockAction();
+    void dockActionTriggered();
     void refreshIcon();
     void updateWindowIconGeometries();
 
@@ -31,6 +35,7 @@ private:
     QPixmap m_iconPixmap;
     DockEntry *m_entry;
     QMenu m_contextMenu;
+    QAction *m_dockAction;
     QTimer *m_updateIconGeometryTimer;
 };
 

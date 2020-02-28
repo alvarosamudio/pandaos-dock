@@ -142,18 +142,26 @@ void AppWindowManager::clicked(DockEntry *entry)
     if (entry->WIdList.isEmpty()) {
         QProcess::startDetached(entry->icon);
     } else if (entry->WIdList.count() > 1) {
-        qDebug() << "current: " << entry->current << ", list count: " << entry->WIdList.size();
+        qDebug() << "current: " << entry->current << ", list count: " << entry->WIdList.count();
 
-        if (entry->current == entry->WIdList.size()) {
+        entry->current++;
+
+        if (entry->current == entry->WIdList.count()) {
             entry->current = 0;
         }
-
         KWindowSystem::forceActiveWindow(entry->WIdList.at(entry->current));
-        entry->current++;
+
     } else if (KWindowSystem::activeWindow() == entry->WIdList.first()) {
         KWindowSystem::minimizeWindow(entry->WIdList.first());
     } else {
         KWindowSystem::forceActiveWindow(entry->WIdList.first());
+    }
+}
+
+void AppWindowManager::undock(DockEntry *entry)
+{
+    if (entry->WIdList.isEmpty()) {
+        emit entryRemoved(entry);
     }
 }
 
@@ -208,6 +216,7 @@ void AppWindowManager::onWindowAdded(quint64 id)
 
         if (entry) {
             entry->WIdList.append(id);
+            entry->current = 0;
         }
 
     } else {
@@ -215,6 +224,7 @@ void AppWindowManager::onWindowAdded(quint64 id)
         entry->WIdList.append(id);
         entry->icon = QString::fromUtf8(info.windowClassClass().toLower());
         entry->id = QCryptographicHash::hash(entry->icon.toUtf8(), QCryptographicHash::Md5).toHex();
+        entry->isActive = KWindowSystem::activeWindow() == id;
         entry->name = info.visibleName();
 
         m_dockList.append(entry);
@@ -222,7 +232,7 @@ void AppWindowManager::onWindowAdded(quint64 id)
     //    entry.desktopFile = QString::fromUtf8(KWindowInfo{id, 0, NET::WM2DesktopFileName}.desktopFileName());
         entry->desktopFile = KWindowInfo{id, 0, NET::WM2WindowClass | NET::WM2DesktopFileName}.desktopFileName();
 
-        qDebug() << "added: " << entry->windowID << entry->icon << entry->isActive << entry->desktopFile;
+        qDebug() << "added: " << id << entry->icon << entry->isActive << entry->desktopFile;
 
     //    KWindowInfo info(mWindow, NET::WMVisibleName | NET::WMName);
     //    QString title = info.visibleName().isEmpty() ? info.name() : info.visibleName();
@@ -238,25 +248,14 @@ void AppWindowManager::onWindowRemoved(quint64 id)
 
     if (e) {
         e->WIdList.removeOne(id);
-        qDebug() << "removed: " << id;
+        e->current = 0;
         if (e->WIdList.isEmpty()) {
-
             if (!e->isDocked) {
                 m_dockList.removeOne(e);
                 emit entryRemoved(e);
             }
         }
     }
-
-
-//    for (DockEntry *entry : m_dockList) {
-//        if (entry->windowID == id) {
-//            emit entryRemoved(entry);
-//            m_dockList.removeOne(entry);
-//            qDebug() << "removed " << id;
-//            break;
-//        }
-//    }
 }
 
 void AppWindowManager::onActiveWindowChanged(quint64 id)
@@ -267,10 +266,13 @@ void AppWindowManager::onActiveWindowChanged(quint64 id)
         return;
 
     for (auto entry : m_dockList) {
-        if (entry->windowID == id) {
-            entry->isActive = true;
-        } else {
-            entry->isActive = false;
+        for (quint64 wid : entry->WIdList) {
+            if (wid == id) {
+                entry->isActive = true;
+                break;
+            } else {
+                entry->isActive = false;
+            }
         }
 
         emit activeChanged(entry);

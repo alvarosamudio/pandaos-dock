@@ -11,29 +11,56 @@
 AppItem::AppItem(DockEntry *entry, QWidget *parent)
     : DockItem(parent),
       m_entry(entry),
-      m_updateIconGeometryTimer(new QTimer(this))
+      m_updateIconGeometryTimer(new QTimer(this)),
+      m_dockAction(new QAction(""))
 {
     m_updateIconGeometryTimer->setInterval(500);
     m_updateIconGeometryTimer->setSingleShot(true);
 
-    QAction *dockAction = new QAction("Dock");
     QAction *closeAction = new QAction("Close All");
-    m_contextMenu.addAction(dockAction);
+    m_contextMenu.addAction(m_dockAction);
     m_contextMenu.addAction(closeAction);
 
+    initDockAction();
     refreshIcon();
 
     connect(m_updateIconGeometryTimer, &QTimer::timeout, this, &AppItem::updateWindowIconGeometries, Qt::QueuedConnection);
     connect(closeAction, &QAction::triggered, this, &AppItem::closeWindow);
-    connect(dockAction, &QAction::triggered, this, [=] {
-        m_entry->isDocked = true;
-        AppWindowManager::instance()->save();
-    });
+    connect(m_dockAction, &QAction::triggered, this, &AppItem::dockActionTriggered);
 }
 
 void AppItem::closeWindow()
 {
-//    AppWindowManager::instance()->closeWindow(m_id);
+    for (quint64 id : m_entry->WIdList) {
+        AppWindowManager::instance()->closeWindow(id);
+    }
+}
+
+void AppItem::update()
+{
+    refreshIcon();
+    QWidget::update();
+}
+
+void AppItem::initDockAction()
+{
+    if (m_entry->isDocked) {
+        m_dockAction->setText(tr("UnDock"));
+    } else {
+        m_dockAction->setText(tr("Dock"));
+    }
+}
+
+void AppItem::dockActionTriggered()
+{
+    if (m_entry->isDocked) {
+        AppWindowManager::instance()->undock(m_entry);
+    }
+
+    m_entry->isDocked = !m_entry->isDocked;
+
+    initDockAction();
+    AppWindowManager::instance()->save();
 }
 
 void AppItem::refreshIcon()
@@ -88,17 +115,9 @@ void AppItem::paintEvent(QPaintEvent *e)
 
     const int lineWidth = itemRect.width() / 2;
     const int lineHeight = 2;
-    bool isActive = false;
 
     if (!m_entry->WIdList.isEmpty()) {
-        for (quint64 id : m_entry->WIdList) {
-            if (KWindowSystem::activeWindow() == id) {
-                isActive = true;
-                break;
-            }
-        }
-
-        if (isActive) {
+        if (m_entry->isActive) {
             painter.setBrush(QColor("#1974FF"));
             painter.drawRect(QRect((itemRect.width() - lineWidth) / 2, itemRect.height() - lineHeight - 1, lineWidth, lineHeight));
         } else {
