@@ -40,6 +40,7 @@ public:
     void raiseWindow(quint64 id);
     void closeWindow(quint64 id);
 
+    void openApp(const QString &appName);
     void clicked(DockEntry *entry);
     void undock(DockEntry *entry);
     void save();

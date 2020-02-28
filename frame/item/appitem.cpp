@@ -12,12 +12,14 @@ AppItem::AppItem(DockEntry *entry, QWidget *parent)
     : DockItem(parent),
       m_entry(entry),
       m_updateIconGeometryTimer(new QTimer(this)),
+      m_openAction(new QAction(tr("Open"))),
       m_dockAction(new QAction(""))
 {
     m_updateIconGeometryTimer->setInterval(500);
     m_updateIconGeometryTimer->setSingleShot(true);
 
     QAction *closeAction = new QAction("Close All");
+    m_contextMenu.addAction(m_openAction);
     m_contextMenu.addAction(m_dockAction);
     m_contextMenu.addAction(closeAction);
 
@@ -27,6 +29,9 @@ AppItem::AppItem(DockEntry *entry, QWidget *parent)
     connect(m_updateIconGeometryTimer, &QTimer::timeout, this, &AppItem::updateWindowIconGeometries, Qt::QueuedConnection);
     connect(closeAction, &QAction::triggered, this, &AppItem::closeWindow);
     connect(m_dockAction, &QAction::triggered, this, &AppItem::dockActionTriggered);
+    connect(m_openAction, &QAction::triggered, this, [=] {
+        AppWindowManager::instance()->openApp(m_entry->icon);
+    });
 }
 
 void AppItem::closeWindow()
@@ -38,12 +43,15 @@ void AppItem::closeWindow()
 
 void AppItem::update()
 {
+    initDockAction();
     refreshIcon();
     QWidget::update();
 }
 
 void AppItem::initDockAction()
 {
+    m_openAction->setVisible(m_entry->WIdList.isEmpty());
+
     if (m_entry->isDocked) {
         m_dockAction->setText(tr("UnDock"));
     } else {

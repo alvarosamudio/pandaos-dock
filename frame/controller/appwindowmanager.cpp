@@ -137,10 +137,15 @@ void AppWindowManager::closeWindow(quint64 id)
     NETRootInfo(QX11Info::connection(), NET::CloseWindow).closeWindowRequest(id);
 }
 
+void AppWindowManager::openApp(const QString &appName)
+{
+    QProcess::startDetached(appName);
+}
+
 void AppWindowManager::clicked(DockEntry *entry)
 {
     if (entry->WIdList.isEmpty()) {
-        QProcess::startDetached(entry->icon);
+        openApp(entry->icon);
     } else if (entry->WIdList.count() > 1) {
         qDebug() << "current: " << entry->current << ", list count: " << entry->WIdList.count();
 

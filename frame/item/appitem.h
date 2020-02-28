@@ -35,6 +35,7 @@ private:
     QPixmap m_iconPixmap;
     DockEntry *m_entry;
     QMenu m_contextMenu;
+    QAction *m_openAction;
     QAction *m_dockAction;
     QTimer *m_updateIconGeometryTimer;
 };
